@@ -10,11 +10,11 @@
 
 # --- ▼ 設定 ▼ ---
 # 監視するインターフェース (例: 'eth0', 'wlan1', 'any')
-# RPIルーターのインターネット側を監視する場合は 'eth0'
-INTERFACE = 'eth0'
+INTERFACE = 'wlan1'
+SRCNETWORK = '172.16.0.0/24'
 
 # 集計結果を表示する間隔 (秒)
-PRINT_INTERVAL = 60
+PRINT_INTERVAL = 30
 
 # 表示する上位N件
 TOP_N = 10
@@ -44,7 +44,7 @@ def print_stats(stats, top_n)
     sorted_dsts = dst_counts.sort_by { |_dst_ip, data| -data[:packets] }
     
     sorted_dsts.first(top_n).each_with_index do |(dst_ip, data), index|
-      puts "  #{index + 1}. 宛先: #{dst_ip.ljust(15)} | パケット数: #{data[:packets].to_s.rjust(6)} | バイト数: #{data[:bytes].to_s.rjust(9)}"
+      puts "  #{index + 1}. 宛先: #{dst_ip.ljust(15)} | パケット数: #{data[:packets].to_s.rjust(6)}"
     end
     
     if sorted_dsts.length > top_n
@@ -73,7 +73,7 @@ last_print_time = Time.now
 # -l : ラインバッファリング (1行ずつ即時出力)
 # -t : タイムスタンプ非表示 (解析しやすくするため)
 # ip : IPパケットのみフィルタ
-tcpdump_cmd = "sudo tcpdump -i #{INTERFACE} -nl -t ip"
+tcpdump_cmd = "sudo tcpdump -i #{INTERFACE} -nl -t ip and src net #{SRCNETWORK}"
 
 # tcpdump 出力の解析用正規表現
 # グループ1: Src IP.Port (例: 1.2.3.4.12345)
